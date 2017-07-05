@@ -28,21 +28,33 @@ static NSString *const cellId  = @"albumCellId";
 
 @implementation ZYPhotoAlbumController
 
+- (instancetype)init{
+    if (self  = [super init]) {
+        [self setUpUI];
+        
+        [self getDataSource];
+    }
+    return self;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
     
-    [self setUpUI];
     
-    [self getDataSource];
 }
 
 - (void)getDataSource{
     
     [[ZYPhotoTool shareTool] getAllCollectionsWithSize:CGSizeMake(60, 60) withAlbumInfo:^(ZYAlbumInfoModel *infoModel) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.albumInfos addObject:infoModel];
+            if (self.albumInfos.count == 1) {
+                [self.albumInfos insertObject:infoModel atIndex:0];
+            }else{
+                [self.albumInfos addObject:infoModel];
+            }
+            
             [self.tableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:[self.albumInfos indexOfObject:infoModel] inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
         });
     }];
@@ -83,12 +95,14 @@ static NSString *const cellId  = @"albumCellId";
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     ZYAlbumTableCell *cell = [tableView dequeueReusableCellWithIdentifier:cellId];
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     ZYAlbumInfoModel *model = self.albumInfos[indexPath.row];
     cell.model = model;
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
     ZYPhotoCollectionController *photoCollection = [[ZYPhotoCollectionController alloc] init];
     ZYAlbumInfoModel *model = self.albumInfos[indexPath.row];
     photoCollection.fetchResult = model.fetchResult;

@@ -30,7 +30,7 @@
 
 - (void)selectPhotos{
     ZYPhotoPickerController *picker = [[ZYPhotoPickerController alloc] init];
-    picker.mediaType = ZYPhotoPickMediaTypePhoto;
+    picker.mediaType = ZYPhotoPickMediaTypeDefault;
     picker.allowsMultipleSelection = YES;
     picker.maximumNumberOfSelection = 9;
     picker.showToolView = YES;

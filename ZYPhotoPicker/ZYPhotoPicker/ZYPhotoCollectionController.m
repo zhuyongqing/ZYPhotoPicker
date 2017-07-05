@@ -13,7 +13,7 @@
 #import "ZYPhotoPickerController.h"
 #import "ZYPhotoPickToolView.h"
 #import "ZYPhotoBrowser.h"
-@interface ZYPhotoCollectionController ()<UICollectionViewDelegate,UICollectionViewDataSource,ZYPhotoBrowserDelegate>{
+@interface ZYPhotoCollectionController ()<UICollectionViewDelegate,UICollectionViewDataSource,ZYPhotoBrowserDelegate,PHPhotoLibraryChangeObserver>{
     CGRect _previousRect;
     CGSize _thumbnailSize;
     NSIndexPath *_lastSelectIndexPath;
@@ -50,10 +50,9 @@ static NSString *const cellId = @"photoCellId";
 
 - (void)setFetchResult:(PHFetchResult *)fetchResult{
     _fetchResult = fetchResult;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self resetCache];
-        [self updateCachedAssets];
-    });
+    [self resetCache];
+    [self.collectionView reloadData];
+    [self updateCachedAssets];
 }
 
 #pragma mark - UI
@@ -312,7 +311,9 @@ static NSString *const cellId = @"photoCellId";
 - (void)photoLibraryDidChange:(PHChange *)changeInstance{
     dispatch_async(dispatch_get_main_queue(), ^{
         PHFetchResultChangeDetails *change = [changeInstance changeDetailsForFetchResult:self.fetchResult];
-        self.fetchResult = change.fetchResultAfterChanges;
+        if (change.fetchResultAfterChanges) {
+            self.fetchResult = change.fetchResultAfterChanges;
+        }
         if (change.hasIncrementalChanges) {
             
             @try{

@@ -31,7 +31,9 @@
 - (void)setMediaType:(ZYPhotoPickMediaType)mediaType{
     [ZYPhotoTool shareTool].mediaType = mediaType;
     [[ZYPhotoTool shareTool] getAllFetchResults:^(PHFetchResult *fetchResult) {
-        _photo.fetchResult = fetchResult;
+        dispatch_async(dispatch_get_main_queue(), ^{
+           _photo.fetchResult = fetchResult;
+        });
     }];
 }
 

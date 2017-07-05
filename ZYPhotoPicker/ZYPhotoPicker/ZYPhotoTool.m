@@ -88,28 +88,20 @@
 - (void)getAllCollectionsWithSize:(CGSize)size withAlbumInfo:(void (^)(ZYAlbumInfoModel *))album{
     
     
-    [self getAllFetchResults:^(PHFetchResult *allPhotos) {
-        ZYAlbumInfoModel *albums = [[ZYAlbumInfoModel alloc] init];
-        albums.albumName = @"All Photos";
-        albums.assetNumber = allPhotos.count;
-        albums.fetchResult  = allPhotos;
-        
-        PHAsset *photoAsset = allPhotos.firstObject;
-        
-        [[PHImageManager defaultManager] requestImageForAsset:photoAsset targetSize:size contentMode:PHImageContentModeDefault options:nil resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
-            albums.postImage = result;
-            album(albums);
-        }];
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+         if (status == PHAuthorizationStatusAuthorized) {
+             PHAssetCollectionType collectionType = PHAssetCollectionTypeSmartAlbum;
+             PHAssetCollectionSubtype collectionSubType = PHAssetCollectionSubtypeAny;
+             
+             PHFetchResult *smatAblum = [PHAssetCollection fetchAssetCollectionsWithType:collectionType subtype:collectionSubType options:nil];
+             [self getAlbumInfoWithResult:smatAblum size:size album:album];
+             
+             PHFetchResult *userAblum = [PHAssetCollection fetchTopLevelUserCollectionsWithOptions:nil];
+             [self getAlbumInfoWithResult:userAblum size:size album:album];
+         }
     }];
     
-    PHAssetCollectionType collectionType = PHAssetCollectionTypeSmartAlbum;
-    PHAssetCollectionSubtype collectionSubType = PHAssetCollectionSubtypeAny;
     
-    PHFetchResult *smatAblum = [PHAssetCollection fetchAssetCollectionsWithType:collectionType subtype:collectionSubType options:nil];
-    [self getAlbumInfoWithResult:smatAblum size:size album:album];
-    
-    PHFetchResult *userAblum = [PHAssetCollection fetchTopLevelUserCollectionsWithOptions:nil];
-    [self getAlbumInfoWithResult:userAblum size:size album:album];
 }
 
 
@@ -139,7 +131,6 @@
                 album(albums);
             }];
         }
-        
     }
 }
 
