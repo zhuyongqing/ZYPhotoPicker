@@ -27,14 +27,13 @@
 
 @property(nonatomic,strong) ZYPhotoPickToolView *pickToolView;
 
+@property(nonatomic,strong) PHFetchResult *fetchResult;
 
 @end
 
 static NSString *const cellId = @"photoCellId";
 
 @implementation ZYPhotoCollectionController
-
-
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -43,13 +42,25 @@ static NSString *const cellId = @"photoCellId";
     self.imageManager = [[PHCachingImageManager alloc] init];
     [self setUpUI];
     
-     [[PHPhotoLibrary sharedPhotoLibrary] registerChangeObserver:self];
+    if (self.fetchResult) {
+        [self initCache];
+    }
+    
+    [[PHPhotoLibrary sharedPhotoLibrary] registerChangeObserver:self];
 }
 
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+}
 
+- (void)initDataSourceWithFetchResult:(PHFetchResult *)fetchResult{
+    self.fetchResult = fetchResult;
+    if (self.isViewLoaded) {
+        [self initCache];
+    }
+}
 
-- (void)setFetchResult:(PHFetchResult *)fetchResult{
-    _fetchResult = fetchResult;
+- (void)initCache{
     [self resetCache];
     [self.collectionView reloadData];
     [self updateCachedAssets];
@@ -231,7 +242,7 @@ static NSString *const cellId = @"photoCellId";
     CGRect visibleRect = CGRectMake(_collectionView.contentOffset.x, _collectionView.contentOffset.y, CGRectGetWidth(_collectionView.frame), CGRectGetHeight(_collectionView.frame));
     CGRect preheatRect = CGRectInset(visibleRect, 0, -.5*visibleRect.size.height);
     
-    CGFloat delta = fabs(CGRectGetMidY(preheatRect) - CGRectGetMidY(_previousRect));
+    CGFloat delta = ABS(CGRectGetMidY(preheatRect) - CGRectGetMidY(_previousRect));
     if (delta < CGRectGetHeight(_collectionView.frame) / 3) {
         return;
     }
@@ -313,7 +324,8 @@ static NSString *const cellId = @"photoCellId";
         PHFetchResultChangeDetails *change = [changeInstance changeDetailsForFetchResult:self.fetchResult];
         if (change.fetchResultAfterChanges) {
             self.fetchResult = change.fetchResultAfterChanges;
-        }
+        }else
+            return ;
         if (change.hasIncrementalChanges) {
             
             @try{
@@ -340,6 +352,9 @@ static NSString *const cellId = @"photoCellId";
                         self.pickToolView.count = self.picker.selectedAssets.count;
                         [self.collectionView deleteItemsAtIndexPaths:removes];
                     }
+                    [change enumerateMovesWithBlock:^(NSUInteger fromIndex, NSUInteger toIndex) {
+                        [self.collectionView moveItemAtIndexPath:[NSIndexPath indexPathForItem:fromIndex inSection:0] toIndexPath:[NSIndexPath indexPathForItem:toIndex inSection:0]];
+                    }];
                 } completion:^(BOOL finished) {
                     
                 }];
@@ -347,11 +362,13 @@ static NSString *const cellId = @"photoCellId";
             @catch (NSException *exception) {
                 [self.collectionView reloadData];
             }
+            
+            
         }else{
             
         }
         
-        [self resetCache];
+       [self resetCache];
     });
     
 }
@@ -359,11 +376,15 @@ static NSString *const cellId = @"photoCellId";
 - (NSArray *)inedxsWithIndexSet:(NSIndexSet *)set{
     NSMutableArray *indexs = [NSMutableArray arrayWithCapacity:set.count];
     [set enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
-        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:idx+1 inSection:0];
+        NSIndexPath *indexPath = [NSIndexPath indexPathForItem:idx inSection:0];
         [indexs addObject:indexPath];
     }];
     
     return [indexs copy];
+}
+
+- (void)dealloc{
+     [[PHPhotoLibrary sharedPhotoLibrary] unregisterChangeObserver:self];
 }
 
 - (void)didReceiveMemoryWarning {

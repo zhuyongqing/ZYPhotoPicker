@@ -32,7 +32,7 @@
     [ZYPhotoTool shareTool].mediaType = mediaType;
     [[ZYPhotoTool shareTool] getAllFetchResults:^(PHFetchResult *fetchResult) {
         dispatch_async(dispatch_get_main_queue(), ^{
-           _photo.fetchResult = fetchResult;
+            [_photo initDataSourceWithFetchResult:fetchResult];
         });
     }];
 }

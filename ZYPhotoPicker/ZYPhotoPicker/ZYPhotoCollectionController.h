@@ -10,6 +10,8 @@
 #import <Photos/Photos.h>
 @interface ZYPhotoCollectionController : UIViewController
 
-@property(nonatomic,strong) PHFetchResult *fetchResult;
+
+
+- (void)initDataSourceWithFetchResult:(PHFetchResult *)fetchResult;
 
 @end
