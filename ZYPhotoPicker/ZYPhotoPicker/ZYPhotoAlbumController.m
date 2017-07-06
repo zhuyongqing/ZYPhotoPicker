@@ -45,8 +45,8 @@ static NSString *const cellId  = @"albumCellId";
 }
 
 - (void)getDataSource{
-    
-    [[ZYPhotoTool shareTool] getAllCollectionsWithSize:CGSizeMake(60, 60) withAlbumInfo:^(ZYAlbumInfoModel *infoModel) {
+    CGFloat scale = [UIScreen mainScreen].scale;
+    [[ZYPhotoTool shareTool] getAllCollectionsWithSize:CGSizeMake(60*scale, 60*scale) withAlbumInfo:^(ZYAlbumInfoModel *infoModel) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (self.albumInfos.count == 1) {
                 [self.albumInfos insertObject:infoModel atIndex:0];
