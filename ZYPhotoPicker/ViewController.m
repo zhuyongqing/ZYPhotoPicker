@@ -9,7 +9,7 @@
 #import "ViewController.h"
 #import "ZYPhotoPickerController.h"
 
-@interface ViewController ()
+@interface ViewController ()<ZYPhotoPickerDelegate>
 
 @end
 
@@ -34,7 +34,12 @@
     picker.allowsMultipleSelection = YES;
     picker.maximumNumberOfSelection = 9;
     picker.showToolView = YES;
+    picker.pickDelegate = self;
     [self presentViewController:picker animated:YES completion:nil];
+}
+
+- (void)photoPickerFinishSelectedImages:(NSArray *)aseets{
+    
 }
 
 - (void)didReceiveMemoryWarning {
